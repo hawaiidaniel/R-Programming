@@ -71,7 +71,7 @@ rankhospital("MN", "heart attack", 5000)
 
 
 rankall=function(outcome,num="best"){
-  dat=read.csv("outcome-of-care-measures.csv",colClasses = "character")
+  dat=read.csv("rprog-data-ProgAssignment3-data/outcome-of-care-measures.csv",colClasses = "character")
   dat=dat[,c(2,7,11,17,23)]
   for (j in 3:5) {
     for (i in 1:nrow(dat)) {
@@ -81,87 +81,30 @@ rankall=function(outcome,num="best"){
     }
   }
   dat=dat[complete.cases(dat),]
-  colnames(dat)=c("name","states","heart attack","heart failure","pneumonia")
-  # if(!state %in% unique(dat[,2])){stop("invalid state")}
+  colnames(dat)=c("hospital","states","heart attack","heart failure","pneumonia")
   if(!outcome %in% names(dat[3:5,])){stop("invalid outcome")}
-  if((is.numeric(num)) & num>nrow(dat)){return(NA)}
+  if(is.numeric(num) & num>nrow(dat)){return(NA)}
+  
+  
   dat[,3:5]=sapply(dat[,3:5],as.numeric)
-  dat=subset(dat,select = c("name", "states","heart attack"))
-  dat=dat[order(dat["states"],dat[outcome],dat["name"]),]
+  dat=subset(dat,select = c("hospital", "states","heart attack"))
+  dat=dat[order(dat["states"],dat["heart attack"],dat["hospital"]),]
   result=data.frame()
+  temp=data.frame()
   
   for (i in 1:length(unique(dat$states))) {
-    
-    newdat=subset(dat,states==unique(dat$states)[i],select = c("name","states"))
+    newdat=subset(dat,states==unique(dat$states)[i],select = c("hospital","states"))
     switch (num,
           "best" = {num=1},
-          "worst" = {num=nrow(newdat)})
+          "worst" = {num=nrow(dat)})
     if(num>nrow(newdat)){
-      temp=data.frame(NA,newdat[,i])
-      result=rbind(result,temp)}
-    else
-    {result=rbind(result,newdat[num,])}
-    return(result)
-  }
-  
-}
-rankall("heart attack", 10)
-
-
-
-
-
-
-
-
-
-
-
-dat=read.csv("outcome-of-care-measures.csv",colClasses = "character")
-dat=dat[,c(2,7,11,17,23)]
-for (j in 3:5) {
-  for (i in 1:nrow(dat)) {
-    if(dat[i,j]=="Not Available"){
-      dat[i,j]=NA
+      temp=data.frame(NA,unique(newdat$states))
+      colnames(temp)=c("hospital","states")
+      result=rbind(result,temp)
+    }else{
+      result=rbind(result,newdat[num,])
     }
   }
+  result
 }
-dat=dat[complete.cases(dat),]
-colnames(dat)=c("name","states","heart attack","heart failure","pneumonia")
-# if(!state %in% unique(dat[,2])){stop("invalid state")}
-# if(!outcome %in% names(dat[3:5,])){stop("invalid outcome")}
-#if(is.numeric(num) & num>nrow(dat)){return(NA)}
-
-
-dat[,3:5]=sapply(dat[,3:5],as.numeric)
-dat=subset(dat,select = c("name", "states","heart attack"))
-dat=dat[order(dat["states"],dat["heart attack"],dat["name"]),]
-result=data.frame()
-# newdat=subset(dat,states==unique(dat$states)[1],select = c("name","states",
-#                                                            "heart attack"))
-num=10
-
-
-
-for (i in 1:length(unique(dat$states))) {
-  newdat=subset(dat,states==unique(dat$states)[i],select = c("name","states"))
-  # switch (num,
-  #       "best" = {num=1},
-  #       "worst" = {num=nrow(dat)})
-  if(num>nrow(newdat)){
-    temp=data.frame(NA,newdat[,i])
-    result=rbind(result,temp)}
-  else
-  {result=rbind(result,newdat[num,])}
-}
-
-
-
-
-
-
-
-
-
-
-
+head(rankall("heart attack", 20),10)
